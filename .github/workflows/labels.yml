@@ -1,0 +1,31 @@
+name: labels
+
+on:
+  push:
+    branches:
+      - "main"
+    paths:
+      - ".github/labels.yml"
+      - ".github/workflows/labels.yml"
+
+jobs:
+  labeler:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Run Labeler
+        uses: jetersen/ghaction-github-labeler@fix/loadConfigGitHubApi
+
+  dispatch:
+    needs:
+      - labeler
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        repo: ["jetersen/ghaction.file.sync"]
+    steps:
+      - name: Repository Dispatch
+        uses: peter-evans/repository-dispatch@v1
+        with:
+          token: ${{ secrets.GH_LABELER_API }}
+          repository: ${{ matrix.repo }}
+          event-type: labels-update
